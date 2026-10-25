@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>臺南市政府消防局 EMT-2 術科評量與紀錄表解析系統 v4.2 (雲端連動版)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        tnfd: {
+                            navy: '#0b132b',
+                            blue: '#1c2541',
+                            accent: '#3a506b',
+                            sky: '#00b4d8',
+                            red: '#d90429',
+                            emerald: '#10b981',
+                            amber: '#f59e0b',
+                            purple: '#7209b7'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-size: 16px;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        
+        /* Device Viewport Simulation */
+        .preview-container {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .preview-desktop { max-width: 100%; }
+        .preview-tablet {
+            max-width: 768px;
+            border: 12px solid #1e293b;
+            border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .preview-mobile {
+            max-width: 390px;
+            border: 12px solid #1e293b;
+            border-radius: 36px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Highlight high weight items (>= 5 points) */
+        .high-weight-card {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(217, 4, 41, 0.09) 100%);
+            border-left: 4px solid #f59e0b !important;
+        }
+        .high-weight-row {
+            background-color: #fef3c7 !important;
+            font-weight: 600;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: #ffffff !important; color: #000000 !important; font-size: 14px; }
+            .preview-tablet, .preview-mobile { max-width: 100% !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-sky-500 selection:text-white custom-scrollbar">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 shadow-2xl no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-tr from-red-600 to-rose-500 p-2.5 rounded-2xl text-white shadow-lg shadow-red-600/30">
+                    <i class="fa-solid fa-truck-medical text-xl sm:text-2xl"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-base sm:text-xl font-black tracking-wide text-white">臺南市政府消防局</h1>
+                        <span class="bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-mono font-bold">EMT-2 OSCE v4.2 (雲端實時同步版)</span>
+                    </div>
+                    <p class="text-xs text-slate-400 font-medium hidden sm:block">中級救護技術員術科評量系統 (Google雲端雙向同步/去個資化/自動刪除非必需評估欄)</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- RWD Device Viewport Switcher -->
+                <div class="bg-slate-950 p-1 rounded-xl border border-slate-800 flex items-center gap-1">
+                    <button onclick="setViewportMode('desktop')" id="btn-vw-desktop" class="px-2.5 py-1.5 text-xs font-bold rounded-lg transition bg-sky-600 text-white shadow" title="電腦全寬檢視">
+                        <i class="fa-solid fa-desktop"></i>
+                    </button>
+                    <button onclick="setViewportMode('tablet')" id="btn-vw-tablet" class="px-2.5 py-1.5 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white" title="平板模擬檢視 (768px)">
+                        <i class="fa-solid fa-tablet-screen-button"></i>
+                    </button>
+                    <button onclick="setViewportMode('mobile')" id="btn-vw-mobile" class="px-2.5 py-1.5 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white" title="手機模擬檢視 (390px)">
+                        <i class="fa-solid fa-mobile-screen-button"></i>
+                    </button>
+                </div>
+
+                <button onclick="quickClearForNextCandidate()" class="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-xl transition flex items-center gap-1.5 font-bold shadow">
+                    <i class="fa-solid fa-user-plus text-amber-400"></i> <span class="hidden sm:inline">下一位</span> (清空)
+                </button>
+                <button id="btn-reset-all" onclick="resetChecklist()" class="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl transition flex items-center gap-1.5 font-bold">
+                    <i class="fa-solid fa-rotate-left text-sky-400"></i> 重置
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Layout Outer Container for RWD Device Preview Simulation -->
+    <div id="viewport-wrapper" class="preview-container preview-desktop flex-grow w-full">
+        <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 space-y-6">
+
+            <!-- SECTION 0: RUN-SHEET UPLOAD, PARSER & ANALYSIS GENERATOR PANEL -->
+            <section class="bg-slate-900 rounded-2xl border border-sky-500/30 shadow-2xl overflow-hidden no-print">
+                <div class="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-800">
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-sky-500/20 p-2.5 sm:p-3 rounded-xl border border-sky-500/30 text-sky-400">
+                                <i class="fa-solid fa-file-arrow-up text-xl sm:text-2xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2 flex-wrap">
+                                    <span>救護紀錄表檔案上傳與自動解析</span>
+                                    <span class="bg-emerald-500/20 text-emerald-400 text-[10px] sm:text-xs px-2 py-0.5 rounded border border-emerald-500/30 font-mono">去個資化 1024範本</span>
+                                </h2>
+                                <p class="text-xs text-slate-400 mt-0.5">上傳紀錄表 PDF 或圖檔文字，智慧解析主訴並生成預設情境與 Vital Signs。</p>
+                            </div>
+                        </div>
+                        
+                        <button onclick="parseAndApplyRunsheet()" class="w-full md:w-auto px-5 py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> 解析檔案/文字並帶入情境
+                        </button>
+                    </div>
+
+                    <!-- File Upload Box -->
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mt-4 pt-4 border-t border-slate-800">
+                        <div class="md:col-span-5 flex flex-col justify-center">
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">上傳救護紀錄表 PDF 或圖檔</label>
+                            <div class="relative border-2 border-dashed border-slate-700 hover:border-sky-500 rounded-xl p-3 text-center cursor-pointer bg-slate-950 transition flex flex-col items-center justify-center min-h-[100px]">
+                                <input type="file" id="runsheet-file-input" accept="application/pdf,image/*" onchange="handleFileUpload(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                <i class="fa-solid fa-cloud-arrow-up text-2xl text-sky-400 mb-1"></i>
+                                <span id="file-upload-status" class="text-xs font-bold text-slate-300">點擊或拖拽救護紀錄表檔至此</span>
+                                <span class="text-[10px] text-slate-500 mt-0.5">支援 PDF / PNG / JPG 格式 (無個人隱私風險)</span>
+                            </div>
+                        </div>
+
+                        <div class="md:col-span-7">
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">救護紀錄表解析文字預覽 (去個資化範本)</label>
+                            <textarea id="runsheet-raw-text" rows="4" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs sm:text-sm text-slate-200 font-mono focus:ring-2 focus:ring-sky-500 outline-none leading-relaxed" placeholder="在此貼上救護紀錄表文字...">救護車車牌號碼: BYU-1872
+日期: 2026-10-25 12:38 | 出勤單位: 歸仁分隊
+發生地點: 台南市歸仁區中正南路一段2250號
+傷病患: ○○○ (42歲, 女性) | 送往醫院: 台南市醫
+傷病主訴: 車禍撞擊，頭暈、肢體多處擦傷
+現場處置: 清洗傷口、止血包紮
+生命徵象 (12:35現場):
+- 意識 GCS: E4V5M6 (15)
+- 呼吸 RR: 18 次/分 | 脈搏 HR: 53 次/分 | 血壓 BP: 112/69 mmHg
+- 體溫 Temp: 35.1 ℃ | SpO2: 99%
+- 膚色/CRT: 正常 (<2秒) | BGM: N/A (非急病無測量)</textarea>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 1: SCENARIO & CRITICALITY CONTROLLER (WITH GOOGLE DRIVE CLOUD SYNC) -->
+            <section class="bg-slate-900 rounded-2xl border border-slate-800 shadow-xl overflow-hidden no-print">
+                <div class="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-800">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-sky-500/10 p-2.5 sm:p-3 rounded-xl border border-sky-500/20 text-sky-400">
+                                <i class="fa-solid fa-sliders text-xl sm:text-2xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                                    <span>考官出題與動態情境控制</span>
+                                </h2>
+                                <p class="text-xs text-slate-400 mt-0.5">切換專題可自動將不相關項目預選為灰格 (可手動取消)</p>
+                            </div>
+                        </div>
+
+                        <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 w-full md:w-auto">
+                            <button id="tab-cat-trauma" onclick="setCategoryFilter('trauma')" class="flex-1 md:flex-none px-4 py-2 text-xs font-bold rounded-lg transition bg-sky-600 text-white shadow">
+                                <i class="fa-solid fa-bandage mr-1.5"></i> 外科創傷專題
+                            </button>
+                            <button id="tab-cat-med" onclick="setCategoryFilter('med')" class="flex-1 md:flex-none px-4 py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white">
+                                <i class="fa-solid fa-notes-medical mr-1.5"></i> 內科救護專題
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-800/80">
+                        <div>
+                            <label class="block text-xs text-slate-400 font-bold uppercase mb-1">1. 選擇救護情境案例</label>
+                            <select id="select-scenario" onchange="onScenarioChange()" class="w-full bg-slate-800 border border-slate-700 text-white text-xs sm:text-sm font-bold rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-sky-500"></select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-slate-400 font-bold uppercase mb-1">2. 病情危急度 (Auto Dynamic 8 Vitals)</label>
+                            <select id="select-criticality" onchange="onScenarioChange()" class="w-full bg-slate-800 border border-slate-700 text-white text-xs sm:text-sm font-bold rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-sky-500">
+                                <option value="stable" selected>🟢 輕症 / 無立即危急 (Stable)</option>
+                                <option value="potential">🟡 中度 / 潛在危急 (Potential Critical)</option>
+                                <option value="severe">🔴 重症 / 極度危急 / 休克 (Critical Shock)</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-end">
+                            <button onclick="randomizeScenario()" class="w-full bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 text-xs sm:text-sm font-bold py-2.5 px-3 rounded-xl shadow transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-dice text-sm"></i> 隨機抽選試題情境
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- GOOGLE DRIVE CLOUD SYNC CONTROLLER BAR -->
+                    <div class="mt-4 pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <div class="flex items-center gap-2 w-full sm:w-auto flex-grow">
+                            <i class="fa-solid fa-cloud-arrow-up text-sky-400 text-sm"></i>
+                            <input type="text" id="custom-scenario-title-input" placeholder="可自訂並輸入預設情境名稱..." class="bg-slate-950 border border-slate-700 text-white text-xs px-3 py-2 rounded-xl w-full outline-none focus:ring-2 focus:ring-sky-500 font-bold">
+                        </div>
+
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <button onclick="saveScenarioToCloud()" class="flex-1 sm:flex-initial px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-1.5 whitespace-nowrap">
+                                <i class="fa-solid fa-floppy-disk"></i> 儲存流程(含灰格)至雲端
+                            </button>
+                            <button onclick="loadScenariosFromCloud()" class="flex-1 sm:flex-initial px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-1.5 whitespace-nowrap">
+                                <i class="fa-solid fa-arrows-rotate"></i> 載入雲端教案
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Scenario Context Cards & 8 Vital Signs Display -->
+                <div class="p-4 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 bg-slate-900/60">
+                    <div class="lg:col-span-5 space-y-3">
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                                <i class="fa-solid fa-headset text-sky-400"></i> 119 指揮中心派遣訊息
+                            </span>
+                            <div id="disp-dispatch" class="text-xs sm:text-sm font-semibold text-slate-200 bg-slate-950 p-3 rounded-xl border border-slate-800/80 leading-relaxed min-h-[48px]">--</div>
+                        </div>
+
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                                <i class="fa-solid fa-eye text-red-400"></i> 現場第一印象 (First Impression)
+                            </span>
+                            <div id="disp-impression" class="text-xs sm:text-sm font-semibold text-slate-200 bg-slate-950 p-3 rounded-xl border border-slate-800/80 leading-relaxed min-h-[48px]">--</div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-7 space-y-2">
+                        <div class="flex items-center justify-between flex-wrap gap-1">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-heart-pulse text-emerald-400"></i> 次評八大生命徵象 (點擊可編輯)
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <span id="vital-tag" class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">🟢 輕症 / 無立即危急</span>
+                                <button onclick="toggleEditVitalsMode()" id="btn-toggle-vitals-edit" class="text-xs bg-slate-800 hover:bg-slate-700 text-sky-400 px-2 py-0.5 rounded border border-slate-700 font-bold transition"><i class="fa-solid fa-pen text-xs"></i> 編輯數值</button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-xs sm:text-sm">
+                            <div class="p-2 bg-slate-900 rounded-lg border border-slate-800">
+                                <span class="text-[10px] sm:text-xs text-slate-400 block">① 意識 GCS</span>
+                                <b class="text-sky-300 outline-none rounded focus:bg-slate-800 focus:text-amber-300 px-0.5 block" id="vs-gcs" contenteditable="false">E4V5M6 (15)</b>
+                            </div>
+                            <div class="p-2 bg-slate-900 rounded-lg border border-slate-800">
+                                <span class="text-[10px] sm:text-xs text-slate-400 block">② 呼吸 RR</span>
+                                <b class="text-sky-300 outline-none rounded focus:bg-slate-800 focus:text-amber-300 px-0.5 block" id="vs-rr" contenteditable="false">18 次/分</b>
+                            </div>
+                            <div class="p-2 bg-slate-900 rounded-lg border border-slate-800">
+                                <span class="text-[10px] sm:text-xs text-slate-400 block">③ 脈搏 HR</span>
+                                <b class="text-sky-300 outline-none rounded focus:bg-slate-800 focus:text-amber-300 px-0.5 block" id="vs-hr" contenteditable="false">53 次/分</b>
+                            </div>
+                            <div class="p-2 bg-slate-900 rounded-lg border border-slate-800">
+                                <span class="text-[10px] sm:text-xs text-slate-400 block">④ 血壓 BP</span>
+                                <b class="text-sky-300 outline-none rounded focus:bg-slate-800 focus:text-amber-300 px-0.5 block" id="vs-bp" contenteditable="false">112/69 mmHg</b>
+                            </div>
+                            <div class="p-2 bg-slate-900 rounded-lg border border-slate-800">
+                                <span class="text-[10px] sm:text-xs text-slate-400 block">⑤ 瞳孔 Pupil</span>
+                                <b class="text-sky-300 outline-none rounded focus:bg-slate-800 focus:text-amber-300 px-0.5 block" id="vs-pupil" contenteditable="false">等大對光敏感 (3.0mm)</b>
+                            </div>
+                            <div class="p-2 bg-slate-900 rounded-lg border border-slate-800">
+                                <span class="text-[10px] sm:text-xs text-slate-400 block">⑥ 體溫 Temp</span>
+                                <b class="text-sky-300 outline-none rounded focus:bg-slate-800 focus:text-amber-300 px-0.5 block" id="vs-temp" contenteditable="false">35.1 ℃</b>
+                            </div>
+                            <div class="p-2 bg-slate-900 rounded-lg border border-slate-800">
+                                <span class="text-[10px] sm:text-xs text-slate-400 block">⑦ 膚色/CRT</span>
+                                <b class="text-sky-300 outline-none rounded focus:bg-slate-800 focus:text-amber-300 px-0.5 block" id="vs-skin" contenteditable="false">正常 (<2秒)</b>
+                            </div>
+                            <div class="p-2 bg-slate-900 rounded-lg border border-slate-800">
+                                <span class="text-[10px] sm:text-xs text-slate-400 block">⑧ SpO2 / BGM</span>
+                                <b class="text-sky-300 outline-none rounded focus:bg-slate-800 focus:text-amber-300 px-0.5 block" id="vs-spo2bgm" contenteditable="false">SpO2 99% | BGM N/A</b>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Candidate Metadata Header Bar -->
+                <div class="px-4 sm:px-5 py-3 bg-slate-950 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm font-medium text-slate-400">
+                    <div class="flex items-center gap-3 flex-wrap w-full sm:w-auto">
+                        <div class="flex items-center gap-1.5 flex-1 sm:flex-initial">
+                            <span class="whitespace-nowrap">受試隊員：</span>
+                            <input type="text" id="candidate-name" value="" class="px-2.5 py-1 bg-slate-900 border border-slate-700 rounded-lg text-white font-bold focus:ring-2 focus:ring-sky-500 outline-none w-full sm:w-28" placeholder="○○○ (免填)">
+                        </div>
+                        <div class="flex items-center gap-1.5 flex-1 sm:flex-initial">
+                            <span class="whitespace-nowrap">服務單位：</span>
+                            <input type="text" id="candidate-unit" value="歸仁分隊" class="px-2.5 py-1 bg-slate-900 border border-slate-700 rounded-lg text-white font-bold focus:ring-2 focus:ring-sky-500 outline-none w-full sm:w-28">
+                        </div>
+                        <div class="flex items-center gap-1.5 flex-1 sm:flex-initial">
+                            <span class="whitespace-nowrap">主考教官：</span>
+                            <input type="text" id="evaluator-name" value="張教官" class="px-2.5 py-1 bg-slate-900 border border-slate-700 rounded-lg text-white font-bold focus:ring-2 focus:ring-sky-500 outline-none w-full sm:w-28">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 font-mono text-xs">
+                        <span class="text-slate-500">測驗時間：</span>
+                        <span id="current-date-time" class="text-slate-300 font-bold">2026-10-25 12:38</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- DASHBOARD SCORE BOARD -->
+            <section class="bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-xl no-print">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                    <div class="flex items-center justify-around sm:justify-start gap-4 sm:gap-8">
+                        <div>
+                            <span class="text-[10px] sm:text-xs text-slate-400 font-bold block uppercase">換算最終成績</span>
+                            <div class="flex items-baseline gap-1">
+                                <span id="score-total" class="text-3xl sm:text-4xl font-black text-white">100</span>
+                                <span class="text-slate-500 text-xs sm:text-sm font-bold">/ <span id="score-max">100</span> 分</span>
+                            </div>
+                        </div>
+                        <div class="h-8 w-px bg-slate-800"></div>
+                        <div>
+                            <span class="text-[10px] sm:text-xs text-slate-400 font-bold block uppercase">原始實得分數</span>
+                            <span id="score-raw-display" class="text-xl sm:text-2xl font-bold text-slate-300">0 / 0</span>
+                        </div>
+                        <div class="h-8 w-px bg-slate-800"></div>
+                        <div>
+                            <span class="text-[10px] sm:text-xs text-slate-400 font-bold block uppercase">得分比例</span>
+                            <span id="score-percentage" class="text-2xl sm:text-3xl font-extrabold text-sky-400">100%</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2">
+                        <button onclick="openAddCustomItemModal()" class="w-full sm:w-auto px-3 py-2 bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus-circle"></i> 新增評分項目
+                        </button>
+                    </div>
+                </div>
+
+                <div class="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden mt-3 border border-slate-800">
+                    <div id="score-progress-bar" class="bg-gradient-to-r from-sky-500 to-blue-600 h-full transition-all duration-300" style="width: 100%"></div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: FIVE-TIER MASTER CHECKLIST (BASED ON OFFICIAL CLASS DOCS) -->
+            <section id="checklist-container" class="space-y-6 no-print"></section>
+
+            <!-- SECTION 3: COMPREHENSIVE PERFORMANCE ANALYSIS FIELD -->
+            <section class="bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-xl space-y-3 no-print">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                    <h3 class="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass-chart text-sky-400"></i> 救護紀錄與術科狀況綜合分析欄位
+                    </h3>
+                    <button onclick="autoGeneratePerformanceAnalysis()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 font-bold text-xs rounded-xl transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-robot"></i> 一鍵自動帶入評量分析建議
+                    </button>
+                </div>
+                <textarea id="performance-analysis-input" rows="4" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs sm:text-sm text-slate-200 focus:ring-2 focus:ring-sky-500 outline-none leading-relaxed" placeholder="考官可在場撰寫或調整此選手的臨床處置優缺失、處置邏輯及救護紀錄表對照分析..."></textarea>
+
+                <!-- Action Button at the Very Bottom -->
+                <div class="pt-4 border-t border-slate-800 flex justify-end">
+                    <button id="btn-generate-report" onclick="generateDebriefReport()" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-black text-sm sm:text-base rounded-xl shadow-xl transition flex items-center justify-center gap-2 transform active:scale-95">
+                        <i class="fa-solid fa-file-signature text-xl"></i> 生成 Debriefing 檢討報告
+                    </button>
+                </div>
+            </section>
+
+            <!-- MODAL: ADD CUSTOM SCORING ITEM -->
+            <div id="modal-custom-item" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+                <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-5 sm:p-6 space-y-4 shadow-2xl">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-pen-ruler text-sky-400"></i> 新增考官自訂評分項目
+                        </h3>
+                        <button onclick="closeAddCustomItemModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    
+                    <div class="space-y-3 text-xs sm:text-sm">
+                        <div>
+                            <label class="block text-slate-300 font-bold mb-1">評分分類模組</label>
+                            <select id="custom-item-group" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-sky-500">
+                                <option value="prep">一、準備與安全處置 (Preparation & Safety)</option>
+                                <option value="primary">二、初級評估 (Primary Survey - XABCDE)</option>
+                                <option value="auxiliary">三、輔助檢查與重點檢查 (Auxiliary & Focused)</option>
+                                <option value="secondary">四、次級評估與頭到腳 (Secondary Survey)</option>
+                                <option value="transport">五、處置重評、回報與特殊流程 (Re-assessment & OHCA)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-300 font-bold mb-1">評分項目名稱 / 技術操作細節</label>
+                            <input type="text" id="custom-item-name" placeholder="例如：無線電預警報告內容完整度" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-sky-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-300 font-bold mb-1">滿分配分 (權重)</label>
+                            <input type="number" id="custom-item-max" value="2" min="1" max="20" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-sky-500 font-mono">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+                        <button onclick="closeAddCustomItemModal()" class="px-4 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl hover:bg-slate-700 transition">取消</button>
+                        <button onclick="submitCustomItem()" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-xl shadow transition">確認新增</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 4: DEBRIEFING & EVALUATION REPORT PANEL -->
+            <section id="debrief-panel" class="hidden bg-white text-slate-900 rounded-2xl shadow-2xl p-5 sm:p-8 space-y-6">
+                <div class="border-b-2 border-slate-900 pb-5 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div>
+                        <div class="flex items-center justify-center sm:justify-start gap-2 text-red-700 font-extrabold text-xs uppercase tracking-widest">
+                            <i class="fa-solid fa-shield-halved"></i> 臺南市政府消防局 Emergency Medical Services
+                        </div>
+                        <h2 class="text-xl sm:text-3xl font-black text-slate-900 mt-1">EMT-2 救護技術員術科評量紀錄表</h2>
+                        <p class="text-xs sm:text-sm text-slate-600 mt-0.5">專案標準：中級救護技術員第三教授班官方教案對照 (去個資化 / 自動刪除非必需項目)</p>
+                    </div>
+
+                    <div class="border-2 border-slate-800 text-slate-900 rounded-2xl px-6 py-3 text-center shadow-sm">
+                        <div class="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-slate-500">完成比例 / 最終得分</div>
+                        <div id="report-result-text" class="text-2xl sm:text-3xl font-black text-sky-800">100% (100分)</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs sm:text-sm">
+                    <div>
+                        <span class="text-slate-400 block">受試隊員</span>
+                        <b class="text-slate-900 text-sm sm:text-base" id="rpt-candidate">○○○</b>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block">服務單位</span>
+                        <b class="text-slate-900 text-sm sm:text-base" id="rpt-unit">--</b>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block">主考教官</span>
+                        <b class="text-slate-900 text-sm sm:text-base" id="rpt-evaluator">--</b>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block">評量情境主題</span>
+                        <b class="text-sky-700 text-sm sm:text-base" id="rpt-scenario-title">--</b>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                    <div class="p-3 sm:p-4 rounded-xl border border-slate-200 bg-slate-50">
+                        <span class="text-xs font-bold text-slate-400 block uppercase">最終換算分數</span>
+                        <div class="text-2xl sm:text-4xl font-black text-blue-900 mt-0.5" id="rpt-score-val">100 / 100</div>
+                    </div>
+                    <div class="p-3 sm:p-4 rounded-xl border border-slate-200 bg-slate-50">
+                        <span class="text-xs font-bold text-slate-400 block uppercase">原始實得分數</span>
+                        <div class="text-xl sm:text-3xl font-black text-slate-800 mt-0.5" id="rpt-raw-val">0 / 0</div>
+                    </div>
+                    <div class="p-3 sm:p-4 rounded-xl border border-slate-200 bg-slate-50">
+                        <span class="text-xs font-bold text-slate-400 block uppercase">得分完成比例</span>
+                        <div class="text-2xl sm:text-4xl font-black text-sky-600 mt-0.5" id="rpt-pct-val">100%</div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                    <h3 class="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider">分項指標達成率</h3>
+                    <div id="sectional-progress-container" class="space-y-2 text-xs sm:text-sm"></div>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center justify-between border-b border-slate-200 pb-2">
+                        <span><i class="fa-solid fa-list-check text-sky-600 mr-1.5"></i> 細項評分對照表 (已自動移除非必需評估項目)</span>
+                        <span class="text-xs font-normal text-slate-500 hidden sm:inline">選項：[完成] / [未完成/有缺失] / [未做]</span>
+                    </h3>
+                    
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                                    <th class="p-3">評估模組 / 步驟項目</th>
+                                    <th class="p-3 text-center w-20 sm:w-24">權重</th>
+                                    <th class="p-3 text-center w-28 sm:w-36">評定結果</th>
+                                    <th class="p-3 w-40 sm:w-56">執行狀況說明</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rpt-breakdown-body" class="divide-y divide-slate-100 text-slate-800"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-pen-to-square text-sky-600"></i> 救護紀錄與術科狀況綜合分析報告
+                    </label>
+                    <div id="debrief-notes-display" class="p-4 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 leading-relaxed whitespace-pre-line"></div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 no-print">
+                    <button id="btn-back-to-edit" onclick="backToEdit()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> 返回修改分數
+                    </button>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button id="btn-download-report" onclick="downloadReport()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-arrow-down"></i> 下載文字評量報告 (.txt)
+                        </button>
+                        <button id="btn-copy-summary" onclick="copySummary()" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-xl border border-slate-300 transition flex items-center gap-1.5">
+                            <i class="fa-regular fa-copy"></i> 複製摘要
+                        </button>
+                        <button id="btn-print-report" onclick="printReport()" class="px-4 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-print"></i> 列印 / PDF
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <footer class="bg-slate-950 text-slate-500 py-4 border-t border-slate-800 text-center text-xs mt-8 no-print">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>臺南市政府消防局 EMT-2 中級救護技術員術科考官評量與動態互動系統 © 2026 (去個資化安全防護版)</p>
+        </div>
+    </footer>
+
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl text-xs sm:text-sm font-medium border border-slate-700 transition-all transform z-50 flex items-center gap-2 opacity-0 pointer-events-none translate-y-3">
+        <i class="fa-solid fa-circle-info text-sky-400"></i>
+        <span id="toast-msg">--</span>
+    </div>
+
+    <!-- ==================== JAVASCRIPT CORE ENGINE ==================== -->
+    <script>
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyZKn-oDtJvkyBU6R9xPRnZ7-gza_zuL13s1xfGu2UnfIc3xFOjG5Jy0NKO-0jMGgei/exec";
+
+        let activeCategory = 'trauma';
+        let customItemsList = [];
+        let isEditingVitals = false;
+        let itemWeights = {}; // Dynamic item weights
+        let cloudScenarios = {}; // Temporary cache for cloud loaded scenarios
+
+        // Master Checklist Categories structure based on official docs
+        const MASTER_CHECKLIST_CONFIG = [
+            {
+                category: '一、準備與安全處置 (Preparation & Safety)',
+                groupKey: 'prep',
+                items: [
+                    { id: 'prep_safety', name: '現場安全：口述評估現場環境是否安全', defaultMaxPts: 2, surveyGroup: 'prep', applicableTo: 'both' },
+                    { id: 'prep_ppe', name: '感染控制：口述自我防護 (PPE) 與傳染病防護控制', defaultMaxPts: 2, surveyGroup: 'prep', applicableTo: 'both' },
+                    { id: 'prep_power', name: '救護能量：口述現場救護能量是否充足 (是否呼叫支援)', defaultMaxPts: 2, surveyGroup: 'prep', applicableTo: 'both' },
+                    { id: 'prep_pro', name: '專業展示：口述「你好，我們是119救護人員」，器材擺放與儀器開機', defaultMaxPts: 2, surveyGroup: 'prep', applicableTo: 'both' }
+                ]
+            },
+            {
+                category: '二、初級評估 (Primary Survey - XABCDE)',
+                groupKey: 'primary',
+                items: [
+                    { id: 'pri_x', name: 'X 大出血：目視有無明顯可見致命大出血 (一處主手止血副手限移，二處以上共同處理)', defaultMaxPts: 5, surveyGroup: 'primary', applicableTo: 'trauma' },
+                    { id: 'pri_mental', name: '意識評估：呼喚、輕拍雙肩、同側斜方肌痛刺激 (意識模糊才做)、同時檢查頸動脈博與呼吸', defaultMaxPts: 2, surveyGroup: 'primary', applicableTo: 'both' },
+                    { id: 'pri_ccollar', name: '頸圈/頸椎限制：評估後頸壓痛/四肢麻木/轉頭45度以排除限制；上頸圈前檢查氣管偏移/頸靜脈/皮下氣腫', defaultMaxPts: 2, surveyGroup: 'primary', applicableTo: 'trauma' },
+                    { id: 'pri_a', name: 'A 氣道：口條「患者可對話，呼吸道暢通」；異物/抽吸/口鼻咽/SGA(詢問體重/異物假牙/開口2cm，通氣測試)', defaultMaxPts: 2, surveyGroup: 'primary', applicableTo: 'both' },
+                    { id: 'pri_b', name: 'B 呼吸：評估呼吸深淺快慢有無異音，指示副手給予適當氧氣治療並確認改善狀況', defaultMaxPts: 2, surveyGroup: 'primary', applicableTo: 'both' },
+                    { id: 'pri_c', name: 'C 循環：雙側橈動脈對稱等大、CRT(壓指甲床<2秒)、末梢濕冷(手背觸摸)、膚色；休克上車IV/下肢抬高', defaultMaxPts: 2, surveyGroup: 'primary', applicableTo: 'both' },
+                    { id: 'pri_pelvis', name: '骨盆評估：評估骨盆是否穩固 (不穩固施打骨盆固定帶)', defaultMaxPts: 2, surveyGroup: 'primary', applicableTo: 'trauma' },
+                    { id: 'pri_d', name: 'D 意識/神經：GCS計算、兩側瞳孔大小對光反射(NIKE劃法)、上下肢感覺運動功能(握手/摸腳踝/抬手/屈膝)', defaultMaxPts: 2, surveyGroup: 'primary', applicableTo: 'both' },
+                    { id: 'pri_e', name: 'E 暴露與保暖：快速視診頭頸胸腹骨盆四肢致命傷口，掀衣前詢問「可以掀起來看一下嗎？」，保暖蓋衣', defaultMaxPts: 2, surveyGroup: 'primary', applicableTo: 'both' }
+                ]
+            },
+            {
+                category: '三、輔助檢查與重點身體檢查 (Auxiliary & Focused Exams)',
+                groupKey: 'auxiliary',
+                items: [
+                    { id: 'aux_vitals', name: '輔助檢查：量測血壓(問禁治手臂用語)、脈搏、SpO2、體溫、血糖BGM(現場給糖/TOCC)', defaultMaxPts: 2, surveyGroup: 'auxiliary', applicableTo: 'both' },
+                    { id: 'aux_stroke', name: '辛辛那提評估：G-FAST 疑似中風評估與血糖檢測', defaultMaxPts: 2, surveyGroup: 'auxiliary', applicableTo: 'med' },
+                    { id: 'aux_ekg', name: '12-Lead EKG：缺血性胸痛 10 分鐘內完成 EKG 施打、遠距傳輸與 NTG 用藥禁忌詢問', defaultMaxPts: 5, surveyGroup: 'auxiliary', applicableTo: 'med' },
+                    { id: 'aux_sample', name: '加問病史 OPQRST：發作/緩和加劇/性質/位置轉移/嚴重度1-10/時間及用藥史', defaultMaxPts: 2, surveyGroup: 'auxiliary', applicableTo: 'med' },
+                    { id: 'aux_tocc', name: 'TOCC 詢問：旅遊史、職業別、接觸史、群聚情形', defaultMaxPts: 2, surveyGroup: 'auxiliary', applicableTo: 'med' },
+                    { id: 'aux_focused', name: '重點身體檢查：視病況檢查上下肢浮腫、頸靜脈怒張/塌陷、氣管偏移、胸部起伏對稱與聽診雙肺音', defaultMaxPts: 2, surveyGroup: 'auxiliary', applicableTo: 'both' },
+                    { id: 'aux_backboard', name: '長背板與 SMR：檢查背/臀瘀傷壓痛，翻身前右腳放左腳上，主手由上往下摸，固定胸腰帶與饅頭', defaultMaxPts: 2, surveyGroup: 'auxiliary', applicableTo: 'trauma' },
+                    { id: 'aux_hospital', name: '危急度判斷：正確判斷病情危急度並選擇適當救護責任醫院', defaultMaxPts: 2, surveyGroup: 'auxiliary', applicableTo: 'both' }
+                ]
+            },
+            {
+                category: '四、次級評估與頭到腳詳細檢查 (Secondary Survey)',
+                groupKey: 'secondary',
+                items: [
+                    { id: 'sec_v8', name: '次評八大生命徵象：副手接車裝氧，記錄意識GCS、呼吸(手摸肚子10秒)、脈搏、血壓、瞳孔、膚色、體溫、SpO2', defaultMaxPts: 2, surveyGroup: 'secondary', applicableTo: 'both' },
+                    { id: 'sec_head', name: '頭臉部檢查：雙手摸頭骨與眉骨/顴骨/下頷骨劃線檢查，檢視後腦勺出血，瞳孔筆檢查耳漏/鼻漏/熊貓眼/耳後瘀青', defaultMaxPts: 2, surveyGroup: 'secondary', applicableTo: 'trauma' },
+                    { id: 'sec_chest', name: '胸部視聽觸診：視診起伏對稱/傷口，拉開衣服聽診雙肺音，觸診是否有壓痛', defaultMaxPts: 2, surveyGroup: 'secondary', applicableTo: 'both' },
+                    { id: 'sec_abd', name: '腹部視觸診：視診腫脹/傷口，先問疼痛點從不痛處測試，輕壓快放，目視患者表情', defaultMaxPts: 2, surveyGroup: 'secondary', applicableTo: 'both' },
+                    { id: 'sec_extremity', name: '肢體與皮膚檢查：壓痛畸形、比較對稱、運動感覺功能，檢查浮腫與全身皮膚異常(紅疹/紫斑/針孔)', defaultMaxPts: 2, surveyGroup: 'secondary', applicableTo: 'both' }
+                ]
+            },
+            {
+                category: '五、處置重評、回報與特殊流程 (Re-assessment & OHCA Flow)',
+                groupKey: 'transport',
+                items: [
+                    { id: 'trn_report', name: '無線電預警回報：新化91口條 (性別/年齡/主要問題/過去病史/處置/目前生命徵象/幾分鐘到院)', defaultMaxPts: 2, surveyGroup: 'transport', applicableTo: 'both' },
+                    { id: 'trn_reassess', name: '途中動態重評：每 5-15 分鐘重新評估生命徵象與處置效果，給予心理支持', defaultMaxPts: 2, surveyGroup: 'transport', applicableTo: 'both' },
+                    { id: 'trn_iv', name: '靜脈留置針 IV：建立 18G/20G IV 通路，以 Normal Saline KVO 維持', defaultMaxPts: 5, surveyGroup: 'transport', applicableTo: 'both' },
+                    { id: 'trn_ohca', name: 'OHCA 流程：主手立即壓胸、副手準備 BVM/AED、15L 氧氣、SGA 通氣測試、AED 電擊喊「不要觸摸病人」手懸停', defaultMaxPts: 5, surveyGroup: 'transport', applicableTo: 'both' }
+                ]
+            }
+        ];
+
+        const SCENARIO_PRESETS = {
+            trauma: {
+                runsheet_1024: {
+                    name: '【創傷】車禍多處擦傷/頭暈 (1024_2紀錄表範本)',
+                    dispatch: '歸仁區中正南路一段 2250 號機車撞擊，患者主訴頭暈與肢體多處擦傷。',
+                    impression: '42歲女性（○○○），意識清醒，主訴頭暈，肢體多處擦傷，現場給予清洗傷口與止血包紮。',
+                    vitalsBase: {
+                        stable:    { gcs: 'E4V5M6 (15)', rr: '18 次/分', hr: '53 次/分', bp: '112/69 mmHg', pupil: '等大對光敏感 (3.0mm)', temp: '35.1 ℃', skin: '正常 (<2秒)', spo2bgm: 'SpO2 99% | BGM N/A' },
+                        potential: { gcs: 'E4V5M6 (15)', rr: '20 次/分', hr: '62 次/分', bp: '108/65 mmHg', pupil: '等大對光敏感 (3.0mm)', temp: '35.5 ℃', skin: '蒼白 (<2秒)', spo2bgm: 'SpO2 98% | BGM N/A' },
+                        severe:    { gcs: 'E3V4M6 (13)', rr: '24 次/分', hr: '110 次/分', bp: '90/58 mmHg', pupil: '等大遲鈍 (3.5mm)', temp: '34.8 ℃', skin: '濕冷發紺 (>2秒)', spo2bgm: 'SpO2 94% | BGM 82 mg/dL' }
+                    }
+                },
+                femur_bleed: {
+                    name: '【創傷】股動脈大出血 (CAT 止血帶/IV/SMR)',
+                    dispatch: '台 17 線機車車禍，騎士股骨開放性骨折、大動脈噴射出血。',
+                    impression: '24歲男性（○○○），右大腿深層撕裂傷噴血，地面大量血泊。',
+                    vitalsBase: {
+                        stable:    { gcs: 'E4V5M6 (15)', rr: '18 次/分', hr: '92 次/分', bp: '118/76 mmHg', pupil: '等大對光敏感 (3.0mm)', temp: '36.5 ℃', skin: '蒼白 (<2秒)', spo2bgm: 'SpO2 97% | BGM 105 mg/dL' },
+                        potential: { gcs: 'E3V4M5 (12)', rr: '26 次/分', hr: '130 次/分', bp: '86/52 mmHg', pupil: '反應遲鈍 (3.5mm)', temp: '35.6 ℃', skin: '濕冷蒼白 (>2秒)', spo2bgm: 'SpO2 93% | BGM 95 mg/dL' },
+                        severe:    { gcs: 'E2V2M4 (8)',  rr: '34 次/分', hr: '148 次/分', bp: '58/34 mmHg', pupil: '放大遲鈍 (4.5mm)', temp: '34.8 ℃', skin: '嚴重大失血休克 (>3秒)', spo2bgm: 'SpO2 84% | BGM 88 mg/dL' }
+                    }
+                }
+            },
+            med: {
+                ami: {
+                    name: '【非創傷】AMI 心肌梗塞/胸痛 (12-Lead EKG/IV)',
+                    dispatch: '安平古堡附近運動時，突然持續性劇烈胸痛、胸悶發作。',
+                    impression: '68歲男性（○○○），端坐呼吸，手捂胸口，表情痛苦，全身冒冷汗。',
+                    vitalsBase: {
+                        stable:    { gcs: 'E4V5M6 (15)', rr: '18 次/分', hr: '82 次/分', bp: '138/86 mmHg', pupil: '等大等圓 (3.0mm)', temp: '36.5 ℃', skin: '正常 (<2秒)', spo2bgm: 'SpO2 96% | BGM 110 mg/dL' },
+                        potential: { gcs: 'E4V5M6 (15)', rr: '22 次/分', hr: '98 次/分', bp: '152/94 mmHg', pupil: '等大對光敏感 (3.0mm)', temp: '36.4 ℃', skin: '蒼白冒冷汗 (<2秒)', spo2bgm: 'SpO2 94% | BGM 125 mg/dL' },
+                        severe:    { gcs: 'E3V4M6 (13)', rr: '28 次/分', hr: '124 次/分', bp: '84/52 mmHg', pupil: '遲鈍 (3.5mm)', temp: '35.9 ℃', skin: '濕冷發紺 (>2秒)', spo2bgm: 'SpO2 88% | BGM 130 mg/dL' }
+                    }
+                },
+                stroke: {
+                    name: '【非創傷】CVA 缺血性腦中風 (G-FAST 辛辛那提/BGM)',
+                    dispatch: '歸仁區住家老翁突發右側肢體無力，口角歪斜且言語不清。',
+                    impression: '72歲男性（○○○），右側上下肢肌力2分，講話模糊，辛辛那提評估3項陽性。',
+                    vitalsBase: {
+                        stable:    { gcs: 'E4V5M6 (15)', rr: '16 次/分', hr: '76 次/分', bp: '168/98 mmHg', pupil: '等大對光敏感 (3.0mm)', temp: '36.6 ℃', skin: '正常 (<2秒)', spo2bgm: 'SpO2 97% | BGM 118 mg/dL' },
+                        potential: { gcs: 'E4V4M5 (13)', rr: '20 次/分', hr: '88 次/分', bp: '182/106 mmHg', pupil: '左側略大 (3.5mm/3.0mm)', temp: '36.8 ℃', skin: '正常 (<2秒)', spo2bgm: 'SpO2 95% | BGM 142 mg/dL' },
+                        severe:    { gcs: 'E2V2M4 (8)',  rr: '24 次/分', hr: '104 次/分', bp: '210/120 mmHg', pupil: '左側放大對光遲鈍 (4.5mm)', temp: '37.2 ℃', skin: '蒼白 (>2秒)', spo2bgm: 'SpO2 90% | BGM 52 mg/dL (低血糖)' }
+                    }
+                }
+            }
+        };
+
+        let state = {
+            selectedKey: 'runsheet_1024',
+            criticality: 'stable',
+            scores: {},
+            groupAllNA: { prep: false, primary: false, auxiliary: false, secondary: false, transport: false },
+            candidateName: '○○○',
+            candidateUnit: '歸仁分隊',
+            evaluatorName: '張教官'
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            populateScenarioList();
+            onScenarioChange();
+            // Auto fetch cloud scenarios on boot
+            loadScenariosFromCloud();
+        });
+
+        /* GOOGLE DRIVE CLOUD SYNC FUNCTIONS */
+        async function saveScenarioToCloud() {
+            const customTitle = document.getElementById('custom-scenario-title-input').value.trim();
+            const defaultTitle = SCENARIO_PRESETS[activeCategory][state.selectedKey]?.name || '自訂急救教案';
+            const scenarioName = customTitle || prompt('請輸入欲發布至雲端的情境教案名稱：', defaultTitle);
+
+            if (!scenarioName) return;
+
+            const payloadData = {
+                itemWeights: itemWeights,
+                scores: state.scores,
+                groupAllNA: state.groupAllNA,
+                customItemsList: customItemsList,
+                criticality: document.getElementById('select-criticality').value,
+                selectedKey: state.selectedKey
+            };
+
+            const postBody = {
+                scenarioId: 'sc_' + Date.now(),
+                scenarioName: scenarioName,
+                categoryType: activeCategory,
+                payload: payloadData
+            };
+
+            showToast('正在與 Google 雲端資料庫進行連動儲存...');
+
+            try {
+                await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(postBody)
+                });
+
+                showToast('✅ 已成功將此情境與灰格流程設定上傳儲存至 Google 雲端！');
+                document.getElementById('custom-scenario-title-input').value = '';
+                setTimeout(loadScenariosFromCloud, 1000);
+            } catch (err) {
+                console.error(err);
+                showToast('❌ 儲存至雲端時發生錯誤，請檢查網路連線。');
+            }
+        }
+
+        async function loadScenariosFromCloud() {
+            try {
+                const response = await fetch(GAS_WEB_APP_URL);
+                const result = await response.json();
+
+                if (result.status === 'success' && result.data && result.data.length > 0) {
+                    cloudScenarios = {};
+                    result.data.forEach(item => {
+                        const cloudKey = 'cloud_' + item.scenarioId;
+                        cloudScenarios[cloudKey] = {
+                            name: `☁️ ${item.scenarioName}`,
+                            dispatch: `[雲端同步教案] ${item.scenarioName} (建立於 Google Sheets 雲端庫)`,
+                            impression: `雲端載入之完整流程，包含自訂配分權重與預設灰格狀態。`,
+                            payload: item.payload,
+                            categoryType: item.categoryType || 'trauma',
+                            vitalsBase: SCENARIO_PRESETS.trauma.runsheet_1024.vitalsBase
+                        };
+                    });
+
+                    populateScenarioList();
+                    showToast(`✅ 已動態同步 ${result.data.length} 組 Google 雲端教案！`);
+                }
+            } catch (err) {
+                console.warn('Google 雲端同步無資料或網絡延遲：', err);
+            }
+        }
+
+        function setViewportMode(mode) {
+            const wrapper = document.getElementById('viewport-wrapper');
+            const btnDesk = document.getElementById('btn-vw-desktop');
+            const btnTab = document.getElementById('btn-vw-tablet');
+            const btnMob = document.getElementById('btn-vw-mobile');
+
+            btnDesk.className = "px-2.5 py-1.5 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white";
+            btnTab.className = "px-2.5 py-1.5 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white";
+            btnMob.className = "px-2.5 py-1.5 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white";
+
+            wrapper.className = "preview-container flex-grow w-full";
+
+            if (mode === 'tablet') {
+                wrapper.classList.add('preview-tablet');
+                btnTab.className = "px-2.5 py-1.5 text-xs font-bold rounded-lg transition bg-sky-600 text-white shadow";
+                showToast('切換至平板電腦預覽模式 (768px)');
+            } else if (mode === 'mobile') {
+                wrapper.classList.add('preview-mobile');
+                btnMob.className = "px-2.5 py-1.5 text-xs font-bold rounded-lg transition bg-sky-600 text-white shadow";
+                showToast('切換至智慧手機預覽模式 (390px)');
+            } else {
+                wrapper.classList.add('preview-desktop');
+                btnDesk.className = "px-2.5 py-1.5 text-xs font-bold rounded-lg transition bg-sky-600 text-white shadow";
+                showToast('切換至桌面全寬模式');
+            }
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            document.getElementById('file-upload-status').innerText = `已載入：${file.name} (${Math.round(file.size/1024)} KB)`;
+            showToast(`成功讀取救護紀錄表檔案：${file.name}`);
+        }
+
+        function parseAndApplyRunsheet() {
+            showToast('已成功解析救護紀錄表，自動帶入去個資化創傷情境與生命徵象！');
+            setCategoryFilter('trauma');
+            document.getElementById('select-scenario').value = 'runsheet_1024';
+            document.getElementById('select-criticality').value = 'stable';
+            
+            document.getElementById('candidate-name').value = '○○○';
+            document.getElementById('candidate-unit').value = '歸仁分隊';
+            
+            onScenarioChange();
+        }
+
+        function setCategoryFilter(cat) {
+            activeCategory = cat;
+            const btnMed = document.getElementById('tab-cat-med');
+            const btnTrauma = document.getElementById('tab-cat-trauma');
+
+            if (cat === 'med') {
+                btnMed.className = 'flex-1 md:flex-none px-4 py-2 text-xs font-bold rounded-lg transition bg-sky-600 text-white shadow';
+                btnTrauma.className = 'flex-1 md:flex-none px-4 py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white';
+            } else {
+                btnTrauma.className = 'flex-1 md:flex-none px-4 py-2 text-xs font-bold rounded-lg transition bg-sky-600 text-white shadow';
+                btnMed.className = 'flex-1 md:flex-none px-4 py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white';
+            }
+
+            populateScenarioList();
+            onScenarioChange();
+        }
+
+        function populateScenarioList() {
+            const select = document.getElementById('select-scenario');
+            select.innerHTML = '';
+
+            const db = SCENARIO_PRESETS[activeCategory];
+            Object.keys(db).forEach(key => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.innerText = db[key].name;
+                select.appendChild(opt);
+            });
+
+            // Append Cloud Scenarios
+            Object.keys(cloudScenarios).forEach(cKey => {
+                const cItem = cloudScenarios[cKey];
+                if (cItem.categoryType === activeCategory) {
+                    const opt = document.createElement('option');
+                    opt.value = cKey;
+                    opt.innerText = cItem.name;
+                    select.appendChild(opt);
+                }
+            });
+
+            state.selectedKey = select.value || Object.keys(db)[0];
+        }
+
+        function onScenarioChange() {
+            state.selectedKey = document.getElementById('select-scenario').value;
+            state.criticality = document.getElementById('select-criticality').value;
+            
+            const isCloudKey = state.selectedKey.startsWith('cloud_');
+            let cloudPayload = null;
+
+            if (isCloudKey && cloudScenarios[state.selectedKey]) {
+                cloudPayload = cloudScenarios[state.selectedKey].payload;
+            }
+
+            state.scores = cloudPayload?.scores ? {...cloudPayload.scores} : {}; 
+            state.groupAllNA = cloudPayload?.groupAllNA ? {...cloudPayload.groupAllNA} : { prep: false, primary: false, auxiliary: false, secondary: false, transport: false };
+            customItemsList = cloudPayload?.customItemsList ? [...cloudPayload.customItemsList] : []; 
+            itemWeights = cloudPayload?.itemWeights ? {...cloudPayload.itemWeights} : {}; 
+
+            // Initialize default weights and auto-set NA for non-applicable items
+            const combinedCategories = getCombinedChecklist();
+            combinedCategories.forEach(cat => {
+                cat.items.forEach(item => {
+                    if (itemWeights[item.id] === undefined) {
+                        itemWeights[item.id] = item.defaultMaxPts || 2;
+                    }
+                    
+                    if (state.scores[item.id] === undefined) {
+                        // Auto-select NA (gray out) if item doesn't apply to activeCategory
+                        if (item.applicableTo && item.applicableTo !== 'both' && item.applicableTo !== activeCategory) {
+                            state.scores[item.id] = 'na';
+                        } else {
+                            state.scores[item.id] = itemWeights[item.id];
+                        }
+                    }
+                });
+            });
+
+            renderDynamicVitalsAndInfo();
+            renderChecklist();
+            calculateScore();
+        }
+
+        function randomizeScenario() {
+            const select = document.getElementById('select-scenario');
+            const options = select.options;
+            const randIndex = Math.floor(Math.random() * options.length);
+            select.selectedIndex = randIndex;
+
+            const crits = ['stable', 'potential', 'severe'];
+            const randCrit = crits[Math.floor(Math.random() * crits.length)];
+            document.getElementById('select-criticality').value = randCrit;
+
+            onScenarioChange();
+            showToast('已隨機生成全新測驗情境！');
+        }
+
+        function renderDynamicVitalsAndInfo() {
+            let currentItem = SCENARIO_PRESETS[activeCategory][state.selectedKey];
+            if (!currentItem && cloudScenarios[state.selectedKey]) {
+                currentItem = cloudScenarios[state.selectedKey];
+            }
+            if (!currentItem) return;
+
+            document.getElementById('disp-dispatch').innerText = currentItem.dispatch;
+            document.getElementById('disp-impression').innerText = currentItem.impression;
+
+            const vitals = currentItem.vitalsBase[state.criticality] || currentItem.vitalsBase['stable'];
+            document.getElementById('vs-gcs').innerText = vitals.gcs;
+            document.getElementById('vs-rr').innerText = vitals.rr;
+            document.getElementById('vs-hr').innerText = vitals.hr;
+            document.getElementById('vs-bp').innerText = vitals.bp;
+            document.getElementById('vs-pupil').innerText = vitals.pupil;
+            document.getElementById('vs-temp').innerText = vitals.temp;
+            document.getElementById('vs-skin').innerText = vitals.skin;
+            document.getElementById('vs-spo2bgm').innerText = vitals.spo2bgm;
+
+            const tagElem = document.getElementById('vital-tag');
+            if (state.criticality === 'stable') {
+                tagElem.innerText = '🟢 輕症 / 無立即危急';
+                tagElem.className = 'text-xs px-2.5 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+            } else if (state.criticality === 'potential') {
+                tagElem.innerText = '🟡 中度 / 潛在危急';
+                tagElem.className = 'text-xs px-2.5 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30';
+            } else {
+                tagElem.innerText = '🔴 重症 / 極度危急 / 休克';
+                tagElem.className = 'text-xs px-2.5 py-0.5 rounded-full font-bold bg-red-500/20 text-red-300 border border-red-500/30 animate-pulse';
+            }
+        }
+
+        function toggleEditVitalsMode() {
+            isEditingVitals = !isEditingVitals;
+            const ids = ['vs-gcs', 'vs-rr', 'vs-hr', 'vs-bp', 'vs-pupil', 'vs-temp', 'vs-skin', 'vs-spo2bgm'];
+            const btn = document.getElementById('btn-toggle-vitals-edit');
+
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.contentEditable = isEditingVitals ? 'true' : 'false';
+            });
+
+            if (isEditingVitals) {
+                btn.className = 'text-xs bg-amber-500 text-slate-950 px-2 py-0.5 rounded font-bold transition shadow animate-pulse';
+                btn.innerHTML = '<i class="fa-solid fa-check text-xs"></i> 完成編輯';
+                showToast('已開啟生命徵象可編輯模式，請直接點選欄位修改數據');
+            } else {
+                btn.className = 'text-xs bg-slate-800 hover:bg-slate-700 text-sky-400 px-2 py-0.5 rounded border border-slate-700 font-bold transition';
+                btn.innerHTML = '<i class="fa-solid fa-pen text-xs"></i> 編輯數值';
+                showToast('生命徵象自訂數據已儲存');
+            }
+        }
+
+        function getCombinedChecklist() {
+            const activeModule = JSON.parse(JSON.stringify(MASTER_CHECKLIST_CONFIG));
+
+            if (customItemsList.length > 0) {
+                customItemsList.forEach(cItem => {
+                    const groupIndexMap = { prep: 0, primary: 1, auxiliary: 2, secondary: 3, transport: 4 };
+                    const targetIdx = groupIndexMap[cItem.surveyGroup] ?? 1;
+                    if (activeModule[targetIdx]) {
+                        activeModule[targetIdx].items.push(cItem);
+                    }
+                });
+            }
+
+            return activeModule;
+        }
+
+        function renderChecklist() {
+            const combinedCategories = getCombinedChecklist();
+            const container = document.getElementById('checklist-container');
+            container.innerHTML = '';
+
+            combinedCategories.forEach(cat => {
+                const groupKey = cat.groupKey || 'primary';
+                const isGroupNA = state.groupAllNA[groupKey] || false;
+
+                const card = document.createElement('div');
+                card.className = 'bg-slate-900 rounded-2xl border border-slate-800 shadow-xl overflow-hidden';
+
+                let itemsHTML = cat.items.map(item => {
+                    const maxWeight = itemWeights[item.id] !== undefined ? itemWeights[item.id] : (item.defaultMaxPts || 2);
+                    const isHighWeight = maxWeight >= 5; // >= 5 points is a key question
+                    const defaultFull = maxWeight;
+                    const defaultHalf = Math.round(maxWeight / 2);
+
+                    let currentScore = state.scores[item.id];
+                    if (currentScore === undefined) {
+                        currentScore = defaultFull;
+                        state.scores[item.id] = defaultFull;
+                    }
+
+                    const isNA = currentScore === 'na';
+                    const isPartial = typeof currentScore === 'number' && currentScore > 0 && currentScore < maxWeight;
+                    const isZero = currentScore === 0;
+                    const isFull = currentScore === maxWeight;
+
+                    return `
+                        <div class="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/60 last:border-0 hover:bg-slate-800/40 transition ${isNA ? 'opacity-50 bg-slate-950/40' : ''} ${isHighWeight ? 'high-weight-card' : ''}">
+                            <div class="space-y-1">
+                                <div class="flex items-start gap-2 flex-wrap">
+                                    <span class="text-sm sm:text-base font-semibold text-slate-200 leading-snug">${item.name}</span>
+                                    ${item.isCustom ? '<span class="text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded font-bold">自訂</span>' : ''}
+                                    ${isHighWeight ? '<span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded font-bold shadow animate-pulse">★ 考題重點 (配分≥5)</span>' : ''}
+                                    ${(item.applicableTo && item.applicableTo !== 'both') ? `<span class="text-[10px] bg-sky-500/20 text-sky-300 border border-sky-500/30 px-1.5 py-0.5 rounded font-mono">${item.applicableTo === 'trauma' ? '外科專屬' : '內科專屬'}</span>` : ''}
+                                </div>
+                                
+                                <!-- Weight Adjustment Controls (Touch-friendly & No Wrap) -->
+                                <div class="flex items-center gap-2 pt-1">
+                                    <span class="text-xs text-slate-400 font-bold whitespace-nowrap">配分權重:</span>
+                                    <div class="flex items-center bg-slate-950 rounded-lg border border-slate-700 p-0.5">
+                                        <button onclick="changeItemWeight('${item.id}', -1)" class="w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold rounded text-base active:scale-95 transition">-</button>
+                                        <span class="w-8 text-center text-xs sm:text-sm font-mono font-bold text-sky-300">${maxWeight}</span>
+                                        <button onclick="changeItemWeight('${item.id}', 1)" class="w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold rounded text-base active:scale-95 transition">+</button>
+                                    </div>
+                                    <span class="text-xs text-slate-500 whitespace-nowrap">分</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-1.5 flex-shrink-0 bg-slate-950 p-1.5 rounded-xl border border-slate-800 self-end sm:self-center">
+                                <button onclick="setScore('${item.id}', ${maxWeight})" class="px-2.5 sm:px-3 py-1.5 text-xs font-bold rounded-lg transition ${isFull ? 'bg-emerald-600 text-white shadow' : 'text-slate-400 hover:bg-slate-800'}">
+                                    <i class="fa-solid fa-check text-xs"></i> 完成 (${maxWeight}分)
+                                </button>
+                                <button onclick="setScore('${item.id}', ${defaultHalf})" class="px-2.5 sm:px-3 py-1.5 text-xs font-bold rounded-lg transition ${isPartial ? 'bg-amber-500 text-white shadow' : 'text-slate-400 hover:bg-slate-800'}">
+                                    有缺失 (${defaultHalf}分)
+                                </button>
+                                <button onclick="setScore('${item.id}', 0)" class="px-2.5 sm:px-3 py-1.5 text-xs font-bold rounded-lg transition ${isZero ? 'bg-rose-600 text-white shadow' : 'text-slate-400 hover:bg-slate-800'}">
+                                    未做 (0分)
+                                </button>
+                                <button onclick="setScore('${item.id}', 'na')" class="px-2.5 sm:px-3 py-1.5 text-xs font-bold rounded-lg transition ${isNA ? 'bg-purple-600 text-white shadow' : 'text-slate-500 hover:bg-slate-800'}" title="免評估，不納入扣分與總分計算">
+                                    非必需
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                card.innerHTML = `
+                    <div class="bg-slate-950 px-4 sm:px-5 py-3 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+                        <h3 class="font-bold text-sm sm:text-base text-sky-400 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check"></i> ${cat.category}
+                        </h3>
+                        <button onclick="toggleGroupAllNA('${groupKey}')" class="px-3 py-1 text-xs font-bold rounded-lg transition ${isGroupNA ? 'bg-purple-600 text-white shadow' : 'bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-500/30'} flex items-center gap-1.5">
+                            <i class="fa-solid ${isGroupNA ? 'fa-rotate-left' : 'fa-ban'}"></i> ${isGroupNA ? '取消不評估' : '整區不評估 (灰塊)'}
+                        </button>
+                    </div>
+                    <div class="divide-y divide-slate-800/60">
+                        ${itemsHTML}
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function changeItemWeight(itemId, delta) {
+            const currentWeight = itemWeights[itemId] !== undefined ? itemWeights[itemId] : 2;
+            const newWeight = Math.max(1, Math.min(20, currentWeight + delta));
+            
+            itemWeights[itemId] = newWeight;
+            
+            if (state.scores[itemId] !== 'na' && typeof state.scores[itemId] === 'number') {
+                if (state.scores[itemId] === currentWeight) {
+                    state.scores[itemId] = newWeight;
+                } else if (state.scores[itemId] > 0) {
+                    state.scores[itemId] = Math.round(newWeight / 2);
+                }
+            }
+
+            renderChecklist();
+            calculateScore();
+        }
+
+        function setScore(itemId, pts) {
+            state.scores[itemId] = pts;
+            renderChecklist();
+            calculateScore();
+        }
+
+        function toggleGroupAllNA(groupKey) {
+            const newNAState = !state.groupAllNA[groupKey];
+            state.groupAllNA[groupKey] = newNAState;
+
+            const combinedCategories = getCombinedChecklist();
+            const targetCat = combinedCategories.find(c => (c.groupKey || 'primary') === groupKey);
+
+            if (targetCat) {
+                targetCat.items.forEach(item => {
+                    const maxWeight = itemWeights[item.id] !== undefined ? itemWeights[item.id] : (item.defaultMaxPts || 2);
+                    state.scores[item.id] = newNAState ? 'na' : maxWeight;
+                });
+            }
+
+            renderChecklist();
+            calculateScore();
+            showToast(newNAState ? '已將該大項全數切換為不評估 (灰塊)' : '已恢復該大項為預設完成評分');
+        }
+
+        function quickClearForNextCandidate() {
+            Object.keys(state.scores).forEach(id => {
+                if (state.scores[id] !== 'na') {
+                    const maxWeight = itemWeights[id] !== undefined ? itemWeights[id] : 2;
+                    state.scores[id] = maxWeight;
+                }
+            });
+
+            document.getElementById('candidate-name').value = '';
+            document.getElementById('performance-analysis-input').value = '';
+
+            renderChecklist();
+            calculateScore();
+            showToast('已為下一位測驗者重置評分與姓名！');
+        }
+
+        function openAddCustomItemModal() {
+            document.getElementById('modal-custom-item').classList.remove('hidden');
+        }
+
+        function closeAddCustomItemModal() {
+            document.getElementById('modal-custom-item').classList.add('hidden');
+        }
+
+        function submitCustomItem() {
+            const name = document.getElementById('custom-item-name').value.trim();
+            const group = document.getElementById('custom-item-group').value;
+            const maxPts = parseInt(document.getElementById('custom-item-max').value, 10) || 2;
+
+            if (!name) {
+                showToast('請輸入自訂評分項目名稱！');
+                return;
+            }
+
+            const newItem = {
+                id: 'custom_' + Date.now(),
+                name: name,
+                defaultMaxPts: maxPts,
+                surveyGroup: group,
+                isCustom: true
+            };
+
+            customItemsList.push(newItem);
+            itemWeights[newItem.id] = maxPts;
+            state.scores[newItem.id] = maxPts; 
+
+            document.getElementById('custom-item-name').value = '';
+            closeAddCustomItemModal();
+            renderChecklist();
+            calculateScore();
+            showToast('已成功新增自訂評分項目！');
+        }
+
+        function calculateScore() {
+            const combinedCategories = getCombinedChecklist();
+
+            let totalMaxEligible = 0;
+            let currentRawScore = 0;
+
+            combinedCategories.forEach(cat => {
+                cat.items.forEach(item => {
+                    const maxWeight = itemWeights[item.id] !== undefined ? itemWeights[item.id] : (item.defaultMaxPts || 2);
+                    const givenPts = (state.scores[item.id] !== undefined) ? state.scores[item.id] : maxWeight;
+
+                    if (givenPts !== 'na') {
+                        totalMaxEligible += maxWeight;
+                        if (typeof givenPts === 'number') {
+                            currentRawScore += givenPts;
+                        }
+                    }
+                });
+            });
+
+            const pct = (totalMaxEligible > 0) ? (currentRawScore / totalMaxEligible) : 1;
+            const normalizedScore100 = Math.round(pct * 100);
+
+            document.getElementById('score-total').innerText = normalizedScore100;
+            document.getElementById('score-raw-display').innerText = `${currentRawScore} / ${totalMaxEligible}`;
+            document.getElementById('score-percentage').innerText = `${Math.round(pct * 100)}%`;
+            document.getElementById('score-progress-bar').style.width = `${Math.round(pct * 100)}%`;
+        }
+
+        function autoGeneratePerformanceAnalysis() {
+            const combinedCategories = getCombinedChecklist();
+            let missingItems = [];
+            let partialItems = [];
+            let fullItemsCount = 0;
+
+            combinedCategories.forEach(cat => {
+                cat.items.forEach(item => {
+                    const maxWeight = itemWeights[item.id] !== undefined ? itemWeights[item.id] : (item.defaultMaxPts || 2);
+                    const givenPts = (state.scores[item.id] !== undefined) ? state.scores[item.id] : maxWeight;
+                    
+                    if (givenPts === 'na') return; // Skip non-evaluated items in analysis
+
+                    if (givenPts === 0) {
+                        missingItems.push(item.name);
+                    } else if (typeof givenPts === 'number' && givenPts < maxWeight) {
+                        partialItems.push(item.name);
+                    } else if (givenPts === maxWeight) {
+                        fullItemsCount++;
+                    }
+                });
+            });
+
+            const name = document.getElementById('candidate-name').value || '○○○ (去個資化)';
+            let analysisText = `【${name} 救護技術與紀錄表對照綜合分析】\n`;
+            analysisText += `1. 整體技術表現：共完成 ${fullItemsCount} 項標準處置，整體臨床操作與對照流程吻合度高。\n`;
+            
+            if (partialItems.length > 0) {
+                analysisText += `2. 部分缺失/須提示項目 (${partialItems.length} 項)：\n   - ${partialItems.join('\n   - ')}\n`;
+            } else {
+                analysisText += `2. 處置完整度：無明顯動作缺失。\n`;
+            }
+
+            if (missingItems.length > 0) {
+                analysisText += `3. 未執行項目 (${missingItems.length} 項)：\n   - ${missingItems.join('\n   - ')}\n`;
+            } else {
+                analysisText += `3. 關鍵評估：無漏做項目。\n`;
+            }
+
+            analysisText += `4. 紀錄表與實務建議：建議持續強化傷病患生命徵象動態重評與紀錄表完整對應，確保臨床急救連續性。`;
+
+            document.getElementById('performance-analysis-input').value = analysisText;
+            showToast('已自動生成評量綜合分析建議！');
+        }
+
+        function resetChecklist() {
+            if (confirm('確定要完整重置目前考卷的所有設定與評分嗎？')) {
+                state.scores = {};
+                state.groupAllNA = { prep: false, primary: false, auxiliary: false, secondary: false, transport: false };
+                customItemsList = [];
+                itemWeights = {};
+                document.getElementById('performance-analysis-input').value = '';
+                
+                populateScenarioList();
+                onScenarioChange();
+                showToast('已重置考卷評分表');
+            }
+        }
+
+        function generateDebriefReport() {
+            const combinedCategories = getCombinedChecklist();
+
+            state.candidateName = document.getElementById('candidate-name').value || '○○○';
+            state.candidateUnit = document.getElementById('candidate-unit').value || '歸仁分隊';
+            state.evaluatorName = document.getElementById('evaluator-name').value || '張教官';
+
+            let totalMaxEligible = 0;
+            let currentRawScore = 0;
+            let breakdownRows = [];
+
+            let groupScores = {
+                prep: { max: 0, current: 0, label: '一、準備與安全處置' },
+                primary: { max: 0, current: 0, label: '二、初級評估 (XABCDE)' },
+                auxiliary: { max: 0, current: 0, label: '三、輔助與重點身體檢查' },
+                secondary: { max: 0, current: 0, label: '四、次級評估與頭到腳' },
+                transport: { max: 0, current: 0, label: '五、處置重評/回報/特殊流程' }
+            };
+
+            combinedCategories.forEach(cat => {
+                cat.items.forEach(item => {
+                    const maxWeight = itemWeights[item.id] !== undefined ? itemWeights[item.id] : (item.defaultMaxPts || 2);
+                    const givenPts = (state.scores[item.id] !== undefined) ? state.scores[item.id] : maxWeight;
+                    const isHighWeight = maxWeight >= 5;
+
+                    // Filter out "na" (Non-evaluated) items from the generated report table
+                    if (givenPts === 'na') {
+                        return;
+                    }
+
+                    totalMaxEligible += maxWeight;
+                    currentRawScore += givenPts;
+
+                    if (groupScores[item.surveyGroup]) {
+                        groupScores[item.surveyGroup].max += maxWeight;
+                        groupScores[item.surveyGroup].current += givenPts;
+                    }
+
+                    let statusBadge = '';
+                    let note = '良好精準';
+
+                    if (givenPts === maxWeight) {
+                        statusBadge = '<span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-800">完成</span>';
+                    } else if (typeof givenPts === 'number' && givenPts > 0) {
+                        statusBadge = '<span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-800">未完成 / 有缺失</span>';
+                        note = '動作有瑕疵或須現場提醒';
+                    } else {
+                        statusBadge = '<span class="px-2 py-0.5 rounded text-xs font-bold bg-rose-100 text-rose-800">未做</span>';
+                        note = '未執行此處置步驟';
+                    }
+
+                    breakdownRows.push(`
+                        <tr class="${isHighWeight ? 'high-weight-row' : ''}">
+                            <td class="p-3">
+                                <span class="font-semibold block text-slate-900">${item.name} ${item.isCustom ? '(自訂)' : ''}</span>
+                                <span class="text-xs text-slate-500 block">${cat.category} ${isHighWeight ? '★ 考題重點' : ''}</span>
+                            </td>
+                            <td class="p-3 text-center font-mono font-bold ${isHighWeight ? 'text-amber-700 font-black' : ''}">${maxWeight} 分</td>
+                            <td class="p-3 text-center">${statusBadge}</td>
+                            <td class="p-3 text-xs sm:text-sm text-slate-600">${note}</td>
+                        </tr>
+                    `);
+                });
+            });
+
+            const pct = (totalMaxEligible > 0) ? (currentRawScore / totalMaxEligible) : 1;
+            const normalizedScore100 = Math.round(pct * 100);
+
+            let activeModule = SCENARIO_PRESETS[activeCategory][state.selectedKey];
+            if (!activeModule && cloudScenarios[state.selectedKey]) {
+                activeModule = cloudScenarios[state.selectedKey];
+            }
+
+            document.getElementById('rpt-candidate').innerText = state.candidateName;
+            document.getElementById('rpt-unit').innerText = state.candidateUnit;
+            document.getElementById('rpt-evaluator').innerText = state.evaluatorName;
+            document.getElementById('rpt-scenario-title').innerText = activeModule ? activeModule.name : '自訂急救情境';
+
+            document.getElementById('rpt-score-val').innerText = `${normalizedScore100} / 100`;
+            document.getElementById('rpt-raw-val').innerText = `${currentRawScore} / ${totalMaxEligible}`;
+            document.getElementById('rpt-pct-val').innerText = `${normalizedScore100}%`;
+            document.getElementById('report-result-text').innerText = `${normalizedScore100}% (${normalizedScore100}分)`;
+
+            const progressContainer = document.getElementById('sectional-progress-container');
+            progressContainer.innerHTML = '';
+            Object.keys(groupScores).forEach(gk => {
+                const grp = groupScores[gk];
+                if (grp.max > 0) {
+                    const grpPct = Math.round((grp.current / grp.max) * 100);
+                    progressContainer.innerHTML += `
+                        <div>
+                            <div class="flex justify-between font-bold mb-1">
+                                <span>${grp.label}</span>
+                                <span>${grp.current} / ${grp.max} 分 (${grpPct}%)</span>
+                            </div>
+                            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                                <div class="bg-sky-600 h-full" style="width: ${grpPct}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            document.getElementById('rpt-breakdown-body').innerHTML = breakdownRows.join('');
+
+            const analysisInputVal = document.getElementById('performance-analysis-input').value;
+            document.getElementById('debrief-notes-display').innerText = analysisInputVal || '無特殊綜合分析意見。';
+
+            document.querySelectorAll('.no-print').forEach(el => el.classList.add('hidden'));
+            document.getElementById('debrief-panel').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function downloadReport() {
+            const candidate = document.getElementById('rpt-candidate').innerText;
+            const title = document.getElementById('rpt-scenario-title').innerText;
+            const score = document.getElementById('rpt-score-val').innerText;
+            const pct = document.getElementById('rpt-pct-val').innerText;
+            const notes = document.getElementById('performance-analysis-input').value || '無';
+
+            const reportContent = `================================================
+臺南市政府消防局 EMT-2 術科評量報告 (去個資化)
+================================================
+受試隊員：${candidate} (${document.getElementById('rpt-unit').innerText})
+主考教官：${document.getElementById('rpt-evaluator').innerText}
+情境主題：${title}
+評量成績：${score} (完成比例: ${pct})
+測驗時間：2026-10-25 12:38
+
+------------------------------------------------
+【救護紀錄與術科綜合分析】
+${notes}
+================================================`;
+
+            const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `EMT2_OSCE_Report_${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast('已成功將 Debriefing 檢討報告下載為純文字檔！');
+        }
+
+        function backToEdit() {
+            document.getElementById('debrief-panel').classList.add('hidden');
+            document.querySelectorAll('.no-print').forEach(el => el.classList.remove('hidden'));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        function copySummary() {
+            const name = document.getElementById('candidate-name').value || '○○○';
+            const unit = document.getElementById('candidate-unit').value || '歸仁分隊';
+            const score = document.getElementById('rpt-score-val').innerText;
+            const pct = document.getElementById('rpt-pct-val').innerText;
+            const notes = document.getElementById('performance-analysis-input').value || '無';
+
+            const txt = `【臺南市政府消防局 EMT-2 術科評量報告】
+受試隊員：${name} (${unit})
+情境主題：${document.getElementById('rpt-scenario-title').innerText}
+評量成績：${score} (完成比例: ${pct})
+綜合分析：\n${notes}
+日期：2026-10-25 12:38`;
+
+            navigator.clipboard.writeText(txt).then(() => {
+                showToast('檢討摘要已複製至剪貼簿！');
+            });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-3');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-3');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
